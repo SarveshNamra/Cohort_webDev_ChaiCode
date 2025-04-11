@@ -1,0 +1,65 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Document</title>
+    <style>
+        .parent{
+            background-color: aquamarine;
+            border: 1px solid black;
+            display: flex;
+            height: 150px;
+            gap: 10px;
+            align-items:center;
+            justify-content: center;
+        }
+
+        .child{
+            height: 50px;
+            width: 80px;
+            border: 1px solid black;
+            padding:10px;
+            margin: 5px;
+        }
+
+        .pat{
+            height: 150px;
+            border: 1px solid black;
+            display: flex;
+        }
+
+        .ch{
+            height: 50px;
+            flex: 1;     /* ratio is of 1 to 1*/
+            border: 1px solid black;
+            order: 0;  /* By default it is 0*/
+        }
+
+        #ch-1{
+            flex: 2;
+            order: 3; /* Now priority get changed */
+        }
+
+        #ch-3{
+            order: 1;  /* Now priority get changed */
+        }
+
+
+    </style>
+</head>
+<body>
+    <div class="parent">
+        <div class="child">Item 1</div>
+        <div class="child">Item 2</div>
+        <div class="child">Item 3</div>
+        <div class="child">Item 4</div>
+    </div>
+    <div class="pat">
+        <div id="ch-1" class="ch">Text 1</div>
+        <div class="ch">Text 2</div>
+        <div id="ch-3" class="ch">Text 3</div>
+        <div class="ch">Text 4</div>
+    </div>
+</body>
+</html>
