@@ -49,7 +49,7 @@ function wait(seconds){
     });
 }
 
-readFileWithPromise('./hello.txt', 'utf-8')
+readFileWithPromise('./hello.txt', 'utf-8')     // Here we are running async code in sychronous fashion
     .then((content) => writeFileWithPromise('./backup.txt', content))
     .then(() => unlinkWithPromise('./hello.txt'))
     .catch(e => console.log('Error', e))
@@ -57,7 +57,8 @@ readFileWithPromise('./hello.txt', 'utf-8')
 
 console.log('Ending Program');
 
-//  ---- async_ _ _ await (Syntantic sugar) ----
+//  ----- async_ _ _ await (Syntantic sugar) -----     
+//  This is a way to write async code in a more readable way, like synchronous code. It is similar to promises but with a cleaner syntax.
 
 console.log('Starting Program');
 

@@ -22,6 +22,8 @@ function updateClock() {
         day: "numeric",
     };
     dateElement.textContent = now.toLocaleDateString(undefined,options);
+    /*  agar aapko default timezone ko reference dayna hai to 'undefined' use karo 
+        or aggar aapko timezone patta hai to direct bhi day sakatay hao like "de-DE",etc.*/
 }
 
 setInterval(updateClock, 1000);

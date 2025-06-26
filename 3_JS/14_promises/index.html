@@ -12,8 +12,13 @@
         const getItems = document.getElementById('items');
         
         // fetch('https://api.freeapi.app/api/v1/public/randomproducts')
-        // .then((response) => {response.json()
-        //     .then((obj) => {
+        // .then((response) => {response.json()     // Ye basically responce ko json say 1k obj may convert karta hai
+        //      
+        //      // uparka hai wo json say ik promise return kar raha hai to aagay firsay .then() lagakar actual data aa gaya 
+        //      /* response.json() may responce kay uppar .json() nam ka function hai 
+        //      jo ise responce ko obj may conve kar raha hai but in return ye promice return kar raha hai  */ 
+        // 
+        // .then((obj) => {             // json say obj may convert hojanay kay bad may ye operation perform karunga
         //         console.log(obj);
         //         const products = obj.data.data;
         //         console.log(products);

@@ -45,6 +45,12 @@ for(let i=0; i<tea.length; i++){
 }
 console.log(upperCase);
 
+let lowerCase = [];
+for(let i=0; i<tea.length; i++){
+    lowerCase.push(tea[i].toLowerCase());
+}
+console.log(lowerCase);
+
 let mostChar = "";
 for(let i=0; i<tea.length; i++){
     if(tea[i].length > mostChar.length){
