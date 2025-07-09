@@ -6,6 +6,13 @@
     font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
 }
 
+body {
+  background-image: url("./images/apple-aqua-mac-ku-5120x2880.jpg");
+  background-repeat: no-repeat;
+  height: 100vh;
+  background-size: 100% 100%;
+}
+
 .container{
     display: flex;
     gap: 20px;
@@ -14,11 +21,24 @@
 }
 
 .board{
+    display: flex;
+    flex-direction: column;
     border: 1px solid black;
     width: 250px;
     padding: 20px;
     border-radius: 10px 10px;
     box-shadow: rgba(0, 0, 0, 0.24) 0px 3px 8px;
+    height: 100%;
+    flex-grow: 1;
+    position: relative;  /*It ensures that absolute child elements (like- buttons) stay inside the board, not float globally*/
+    overflow-y: hidden;
+}
+
+.board{
+    background-repeat: no-repeat;
+    background-attachment: fixed;
+    background-size: 100% 100%;
+    background-image: url("./images/pexels-mikhail-nilov-7405419.jpg");
 }
 
 .item{
@@ -26,15 +46,24 @@
     margin-top: 10px;
     border-radius: 8px 8px;
     padding: 10px;
+    font-family: Georgia, 'Times New Roman', Times, serif;
+    font-size: 18px;
     cursor: pointer;
+    transition: 0.5s;
 }
 
-h3{
-    justify-self: center;
+.item{
+    background-image: url("images/pexels-mikhail-nilov-7405419.jpg");
+}
+
+
+h3{ 
+    text-align: center;
     margin-bottom: 20px;
 }
 
 .item:hover{
+    background-image: none;
     background-color: black;
     color: white;
 }
@@ -44,14 +73,68 @@ h3{
 }
 
 #to-add-item{
-    background-color: blue;
+    background-color: rgb(65, 65, 191);
+    font-family:cursive;
     color:white;
     cursor: pointer;
     padding: 5px;
     border-radius: 5px 5px;
+    transition: 0.5s;
 }
 
 #to-add-item:hover{
-    background-color: orange;
+    background-color: rgb(214, 165, 74);
+    color: black;
+}
+
+.Delete-btn{
+    display: flex;
+    justify-self:self-end;
+    padding: 5px;
+    border-radius: 5px;
+    cursor:grab;
+    border: 1px solid black;
+    box-shadow: rgba(0, 0, 0, 0.25) 0px 54px 55px, rgba(0, 0, 0, 0.12) 0px -12px 30px, rgba(0, 0, 0, 0.12) 0px 4px 6px, rgba(0, 0, 0, 0.17) 0px 12px 13px, rgba(0, 0, 0, 0.09) 0px -3px 5px;
+    transition: 0.3s;
+}
+
+.Delete-btn:hover{
+    background-color: rgb(241, 52, 52);
+}
+
+.remove-board-btn{
+    padding: 5px;
+    align-self: self-end;
+    position: absolute;
+    bottom: 10px;
+    right: 10px;
+    border-radius: 8px 8px;
+    cursor: pointer;
+    transition: 0.5s;
+}
+
+.remove-board-btn:hover{
+    background-color: lightgray;
+    color: black;
+}
+
+.items{
+    flex-grow: 1;
+    overflow-y: auto;
+    margin-bottom: 30px;
+}
+
+#to-create-board{
+    background-color: rgb(65, 65, 191);
+    font-family:cursive;
+    color:white;
+    cursor: pointer;
+    padding: 5px;
+    border-radius: 5px 5px;
+    transition: 0.5s;
+}
+
+#to-create-board:hover{
+    background-color: rgb(214, 165, 74);
     color: black;
 }
