@@ -24,6 +24,7 @@ function deleteBtn(target){
 
     btnDeletCard.addEventListener('click', () => {
         target.remove();
+        saveToLocalStorage();
     });
 
     target.appendChild(btnDeletCard);
@@ -47,6 +48,7 @@ function removeBoardAndAddDragFun(target){
 
     removeBoard.addEventListener('click', () => {
         target.remove();
+        saveToLocalStorage();
     });
 
     target.appendChild(removeBoard);
@@ -60,6 +62,19 @@ addedItem.forEach((item) => {
 });
 //addedItem.forEach((item) => drag(item));
 
+// Saving to Local Storage
+function saveToLocalStorage() {
+    const boards = [];
+    document.querySelectorAll('.board').forEach(board => {
+      const title = board.querySelector('h3').innerText;
+      const tasks = Array.from(board.querySelectorAll('.item'))
+      .map(item => 
+        item.childNodes[0].nodeValue.trim() // Exclude delete button text
+      );
+      boards.push({ title, tasks });
+    });
+    localStorage.setItem('kanbanBoards', JSON.stringify(boards));
+}
 
 // Adds new item to board
 btnToAddItem.addEventListener('click',() => {
@@ -85,6 +100,8 @@ btnToAddItem.addEventListener('click',() => {
 
     drag(card);
     deleteBtn(card);
+
+    saveToLocalStorage(); 
 });
 
 // Creates new board with similar functionalities.
@@ -106,6 +123,8 @@ toCreateBoard.addEventListener('click', () => {
     removeBoardAndAddDragFun(createNewBoardCard);
     
     mainContainer.appendChild(createNewBoardCard);
+
+    saveToLocalStorage();
 });
 
 // Add Item dutton give choice to add item in which board ?

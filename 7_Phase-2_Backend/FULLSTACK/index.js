@@ -37,7 +37,7 @@ app.get("/", (req, res) => {
 db();
 
 // user routes
-app.use("/api/v1/users", userRoutes);
+app.use("/api/v1/users", userRoutes);       // app.use means middleware
 
 app.listen(port, () => {
     console.log(`Example app listening on port ${port}`);
