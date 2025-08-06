@@ -62,7 +62,7 @@ addedItem.forEach((item) => {
 });
 //addedItem.forEach((item) => drag(item));
 
-// Saving to Local Storage 
+// Saving to Local Storage in the local device.
 function saveToLocalStorage() {
     const boards = [];
     document.querySelectorAll('.board').forEach(board => {
