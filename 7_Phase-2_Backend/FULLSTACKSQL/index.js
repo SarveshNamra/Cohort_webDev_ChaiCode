@@ -4,7 +4,7 @@ import cookieParser from 'cookie-parser';
 import cors from 'cors';
 
 // costom routes
-import userRoutes from './routes/auth.route.js';
+import userRoutes from './routes/user.route.js';
 
 dotenv.config();
 
