@@ -98,7 +98,7 @@ userSchema.methods.generateRefreshToken = function () {
 };
 
 // methods for isEmailVerified 
-// Fun excersise -> Hm DB may Hashed Token rakh rahai hai aur user ko bhajunga normal token
+// Fun excersise -> Hm DB may Hashed Token rakh rahai hai aur, user ko bhajunga normal token
 userSchema.methods.generateTemporaryToken = function () {
     const unHashedToken = crypto.randomBytes(20).toString("hex")
 

@@ -12,7 +12,7 @@ const registerUser = async (req, res) => {
     // get data
     // validate
     // check if user already exsists
-    // create a uesr in database
+    // create a user in database
     // create a verification token
     // save token in database
     // send token in email to user

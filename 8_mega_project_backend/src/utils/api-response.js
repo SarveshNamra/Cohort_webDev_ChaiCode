@@ -1,6 +1,6 @@
 class ApiResponse{      //node js may response ka koie like - extends Error type class nahi hai.
     constructor(
-        statusCode,
+        statusCode, 
         data,
         message = "Success"
     ){
