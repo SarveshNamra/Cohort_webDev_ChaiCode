@@ -38,10 +38,6 @@ const userSchema = new Schema({
         type: String,
         required: [true, "password is required"],
     },
-    isEmailVerified: {
-        type: Boolean,
-        required: false,
-    },
     forgotPasswordToken: {
         type: String,
     },
@@ -50,6 +46,10 @@ const userSchema = new Schema({
     },
     refreshToken: {
         type: String,
+    },
+    isEmailVerified: {   // This is for email verification( This is added by me )
+        type: Boolean,
+        default: false,
     },
     emailVerificationToken: {
         type: String,

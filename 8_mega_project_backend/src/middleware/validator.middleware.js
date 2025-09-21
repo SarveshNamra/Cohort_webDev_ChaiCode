@@ -2,13 +2,13 @@ import {validationResult} from "express-validator";
 import {ApiError} from "../utils/api-error.js";
 
 export const validator = (req, res, next) => {
-    const errors = validationResult(req);    // whats the datatype of errors, is it array ?
+    const errors = validationResult(req);    // ---- whats the datatype of errors, is it array ? ----
 
     if(errors.isEmpty()){
         return next();
     }
 
-    // need to understantd this below code
+    // * * * * ---  need to understantd this below code ---  * * * *
     const extractedError = [];
     errors.array().map((err) => 
         extractedError.push({

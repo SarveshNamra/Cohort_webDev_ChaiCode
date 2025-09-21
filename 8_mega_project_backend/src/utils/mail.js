@@ -11,9 +11,35 @@ const sendMail = async (options) => {
     });
 
     var emailText = mailGenerator.generatePlaintext(options.mailGenContent);
+    var emailHtml = mailGenerator.generate(options.mailGenContent);
+
+    // From Nodemailer
+    const transporter = nodemailer.createTransport({
+        host: process.env.MAILTRAP_SMTP_HOST,
+        port: process.env.MAILTRAP_SMTP_PORT,
+        secure: false,
+        auth: {
+            user: MAILTRAP_SMTP_USER,
+            pass: MAILTRAP_SMTP_PASS,
+        },
+    });
+
+    const mail = {
+        from: 'mail.taskmanager@example.com',
+        to: options.email,
+        subject: options.subject,
+        text: emailText, // plain‑text body
+        html: emailHtml, // HTML body
+    };
+
+    try {
+        await transporter.sendMail(mail)
+    } catch (error) {
+        console.error("Email failed",error)
+    }
 }
 
-// Factory Functions
+// Factory Functions/method
 
 const emailVerificationMailGenContent = (username, verificationUrl) => {
     return {

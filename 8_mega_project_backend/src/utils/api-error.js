@@ -3,9 +3,9 @@ class ApiError extends Error{
         statusCode,
         message = "Something went wrong",
         error = [],    // there are different types of error(Google - error node and read the documentation).
-        stack = "",    // Read it on google.
+        stack = "",    // --- Read it on google. --- 
     ){
-        super(message);
+        super(message);   // super() does is, it calls the parent class(i.e. class Error) constructor
         this.statusCode = statusCode;
         this.data = null;
         this.message = message;

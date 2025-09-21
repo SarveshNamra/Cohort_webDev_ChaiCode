@@ -1,19 +1,282 @@
-import {asyncHandler} from "../utils/async-handler.js"
+import {asyncHandler} from "../utils/async-handler.js";
+import {User} from "../models/user.models.js";
+import crypto from "crypto";
+import nodemailer from "nodemailer";
+import bcrypt from "bcryptjs";
+import jwt from "jsonwebtoken";
+import { ApiError } from "../utils/api-error.js";
+import { error } from "console";
+import { Suspense, use } from "react";
+
+// ----> Homework to complete all the validations <----
 
 const registerUser = asyncHandler(async (req, res) => {
     // 1. get user data 
-    const {username, email, password, role} = req.body
+    const {username, email, password, role} = req.body;
 
     // validation
 
-        // if(!email || !password){
+        //name,email,pass,conform_pass
+        // check user already exsists
+        //login-> create user db im db
+        //hash the pass
+        //save token in db
+        //check email(token) if true login success
+        if(!username || !email || !password){
+            // return res.status(400).json({
+            //     message: "All fields are required",
+            // });
+            throw new ApiError(409, "All fields are required");
+        }
 
-        // }
-        // if(password.length < 8){}
+            // check user already exsists
+            const existingUser = await User.findOne({email});
+            // 'user' is a Mongoose document instance - When you do await 'User.findOne({email})', 
+            // it returns a Mongoose document (not a plain object).
+
+            if(existingUser && existingUser.isEmailVerified){
+                throw new ApiError(409, "User already exsists");
+            }
+
+            // added user in db
+            const user = exsistingUser && !existingUser.isEmailVerified 
+            ? exsistingUser :
+            await User.create({
+                username, fullname, email, password, role
+            });
+
+            if(!user){
+                throw new ApiError(409, "User not registered");
+            }
+
+            // Instance methods (userSchema.methods.*) → Call on user instances: user.methodName()
+            // Static methods (userSchema.statics.*) → Call on the model: User.methodName()
+            const {hashedToken, unHashedToken, tokenExpiry} = user.generateTemporaryToken();
+            user.emailVerificationToken = hashedToken;
+            user.emailVerificationExpiry = new Date(tokenExpiry);
+            await user.save();
+
+            // send this token in email to the user
+            const transporter = nodemailer.createTransport({
+                host: process.env.MAILTRAP_SMTP_HOST,
+                port: process.env.MAILTRAP_SMTP_PORT,
+                secure: false, // true for 465, false for other ports
+                auth: {
+                    user: process.env.MAILTRAP_SMTP_USER,
+                    pass: process.env.MAILTRAP_SMTP_PASS,
+                },
+            });
+
+            const mailOption = {
+                from: process.env.MAILTRAP_SENDEREMAIL,
+                to: user.email,
+                subject: "Please verify your email ✔",
+                text: `click on following link : 
+                        ${process.env.BASE_URL}/api/v1/user/verify${unHashedToken}`, // plain‑text body
+                html: `<p>Click to verify your email <a href="${process.env.BASE_URL}/api/v1/user/verify${unHashedToken}"></p>`,
+            }
+
+            await transporter.sendMail(mailOption);        
+});
+
+const loginUser = asyncHandler(async (req, res) => {
+    const {email, username, password, role} = req.body;
+
+    // validation
+
+        // see user email exsists or not
+        // see password matches or not
+        // check user is verified or not.
+        //
+    if(!email || !password){
+        throw new ApiError(409, "All fields are required");
+    }
+
+    // see user email exsists or not
+    const user = await User.findOne({email: email})
+    if(!user){
+        throw new ApiError(409, "Email not match");
+    }
+
+    // see password matches or not
+    const isMatch = await bcrypt.compare(password, user.password);
+    //user is a Mongoose document instance - When you do await User.findOne({email}), it returns a Mongoose document (not a plain object).
+    //Mongoose documents have direct property access - You can access schema fields directly:
+
+    if(!isMatch){
+        throw new ApiError(409, "Invalid email or password");
+    }
+
+    // check user is verified or not.
+    if(!user.isEmailVerified){
+        throw new ApiError(409, "User is not verified");
+    }
+
+    const token = jwt.sign(
+        {id: user._id},
+        process.env.JWT_SECRET,
+        {
+            expiresIn: '24h'
+        }
+    );
+
+    const cookieOptions = {
+        httpOnly: true,
+        secure: true,
+        maxAge: 24*60*60*1000
+    }
+    res.cookie("token", token, cookieOptions)
+
+    res.status(200).json({
+        success: true,
+        message: "Login Successful",
+        token,
+        user:{
+            id: user._id,
+            fullname: user.fullname,
+            email: user.email,
+            isEmailVerified: user.isEmailVerified,
+            role: user.role
+        }
+    })
+});
+
+const logoutUser = asyncHandler(async (req, res) => {
+    const { email,username, password, role} = req.body;
+
+    // validation
+    res.cookie('token', '', {
+        // expires: new Date(0)     // cookies get imediately clear.
+    })
+    res.status(200).json({
+        success: true,
+        message: "Logout successfully...",
+    })
+});
+
+const verifiEmail = asyncHandler(async (req, res) => {
+    const { email,username, password, role} = req.body;
+
+    // validation
+        // get token from url
+        // validate
+        // in db find user based on token
+        // remove verification token 
+        // save
+        // response
+
+    const {unHashedToken} = req.params;
+    if(!unHashedToken) {
+        throw new ApiError(409, "Token is missing");
+    }
+    
+    // hash token to compare with the DB
+    const hashedToken = crypto.createHash("sha256").update(unHashedToken).digest("hex");
+
+    // find user and check expiry
+    const user = await User.findOne({
+        emailVerificationToken: hashedToken,
+        emailVerificationExpiry:{ $gt: now.Date() }, // Not expired
+    });
+
+    if(!user){
+        throw new ApiError(409, "Token is invalid or has been expired");
+    }
+
+    // Update user: verify and remove token
+    user.isEmailVerified = true;
+    user.emailVerificationToken = undefined;
+    user.emailVerificationExpiry = undefined;
+
+    // save
+    user.save();
+
+    // response
+    res.status(200).json({
+        success: true,
+        message: "Email verification done successfull...",
+    });
+});
+
+const resendVerificationEmail = asyncHandler(async (req, res) => {
+    const { email,username, password, role} = req.body;
+
+    // validation
+        // 
+});
+
+const refreshAccessToken = asyncHandler(async (req, res) => {
+    const tokenFromCooky = req.cookie?.refreshToken || req.body?.refreshToken;
+
+    // validation
+        // resive refresh token from cookies or body
+        // verify token
+        // refresh the token reset expiry time
+        // save
+
         
-        // const isValidate = validateMe(password); // validateMe is method which will return true or false.
-  
-        registrationValidation(body)
-})
+});
 
-export {registerUser}
+const frogotPasswordRequest = asyncHandler(async (req, res) => {
+    const { email } = req.body;
+
+    // validation
+        // check user exsists
+        // generate temp reset token and expiry time
+        // store token and expiry in db
+        // send email with link and unhashed token
+
+    const user = await User.findOne({email});
+
+    if(!user){
+        throw new ApiError(409, "Email is required");
+    }
+
+    const {hashedToken, unHashedToken, tokenExpiry} = user.generateTemporaryToken();
+
+    user.forgotPasswordToken = hashedToken;
+    user.forgotPasswordExpiry = now.Date(tokenExpiry);
+    await user.save({validateBeforeSave:false}); // to skip other validations
+
+    const resetUrl = `${process.env.BASE_URL}/reset-password/${unHashedToken}`;
+
+    // send this token in email to the user
+    const transporter = nodemailer.createTransport({
+        host: process.env.MAILTRAP_SMTP_HOST,
+        port: process.env.MAILTRAP_SMTP_PORT,
+        secure: false, // true for 465, false for other ports
+        auth: {
+            user: process.env.MAILTRAP_SMTP_USER,
+            pass: process.env.MAILTRAP_SMTP_PASS,
+        },
+    });
+
+    const mailOption = {
+        from: process.env.MAILTRAP_SENDEREMAIL,
+        to: user.email,
+        subject: "Please verify your email ✔",
+        text: `click on following link : ${resetUrl}`, // plain‑text body
+        html: `<p>Click to verify your email <a href="${resetUrl}"></p>`,
+    }
+
+    await transporter.sendMail(mailOption);
+
+    res.status(200).json({
+        success: true,
+        message: "Reset link sent to your email address",
+    });
+});
+
+const changeCurrentPassword = asyncHandler(async (req, res) => {
+    const { email,username, password, role} = req.body;
+
+    // validation
+});
+
+const getCurrentUser = asyncHandler(async (req, res) => {
+    const { email,username, password, role} = req.body;
+
+    // validation
+});
+
+export {registerUser, loginUser, logoutUser, verifiEmail, resendVerificationEmail, refreshAccessToken, frogotPasswordRequest, changeCurrentPassword, getCurrentUser}
