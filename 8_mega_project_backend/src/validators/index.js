@@ -16,16 +16,21 @@ const userRegistrationValidator = () => {
             .notEmpty().withMessage("Password is required")
             .isLength({min: 8}).withMessage("Password should be at least 8 char")
             .isLength({max: 16}).withMessage("Password cannot exceed 16 char"),
-        // body("confirmPassword")
-        //     .trim()
-        //     .notEmpty().withMessage("Confirm Password is required")
-        //     .custom((value,{req}) => {
-        //         if(value !== req.body.password){
-        //             throw new Error("Your password and confirm password doesn't match")
-        //         }
-        //         return true;
-        //     })
-        //     .withMessage("Your password and confirm password doesn't match"),
+        body("newPassword")
+            .trim()
+            .notEmpty().withMessage("New Password is required")
+            .isLength({min: 8}).withMessage("Password should be at least 8 char")
+            .isLength({max: 16}).withMessage("Password cannot exceed 16 char"),
+        body("confirmPassword")
+            .trim()
+            .notEmpty().withMessage("Confirm Password is required")
+            .custom((value,{req}) => {
+                if(value !== req.body.newPassword){
+                    throw new Error("Your new password and confirm password doesn't match !")
+                }
+                return true;
+            })
+            .withMessage("Your password and confirm password doesn't match"),
         body("role")
             .optional()
             .isIn(AvailableUserRole).withMessage("Invalid role"),

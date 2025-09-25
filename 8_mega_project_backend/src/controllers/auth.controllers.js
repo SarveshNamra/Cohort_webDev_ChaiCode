@@ -7,6 +7,8 @@ import jwt from "jsonwebtoken";
 import { ApiError } from "../utils/api-error.js";
 import { error } from "console";
 import { Suspense, use } from "react";
+import { IncomingMessage } from "http";
+import { throwDeprecation } from "process";
 
 // ----> Homework to complete all the validations <----
 
@@ -142,20 +144,32 @@ const loginUser = asyncHandler(async (req, res) => {
 });
 
 const logoutUser = asyncHandler(async (req, res) => {
-    const { email,username, password, role} = req.body;
-
+    const {email, username, password, role} = req.body;
     // validation
+        // clear auth cookie
+        // cookie will remove and expiry will be 0
+    const cookieOperations = {
+        httpOnly: true,
+        secure: true,
+        sameSite: 'strict',
+        path: '/',
+    };
+
     res.cookie('token', '', {
-        // expires: new Date(0)     // cookies get imediately clear.
-    })
-    res.status(200).json({
+        expires: new Date(0)     // cookies get imediately clear.
+    });
+
+    // res.clearCookie('token', cookieOptions);
+    // res.clearCookie('refreshToken', cookieOptions);
+
+    return res.status(200).json({
         success: true,
         message: "Logout successfully...",
-    })
+    });
 });
 
 const verifiEmail = asyncHandler(async (req, res) => {
-    const { email,username, password, role} = req.body;
+    const {email, username, password, role} = req.body;
 
     // validation
         // get token from url
@@ -199,22 +213,129 @@ const verifiEmail = asyncHandler(async (req, res) => {
 });
 
 const resendVerificationEmail = asyncHandler(async (req, res) => {
-    const { email,username, password, role} = req.body;
+    const {email} = req.body;
 
     // validation
-        // 
+        // email validations
+        // find user
+        // Generate a new verification token
+
+    if(!user){
+        throw new ApiError(400, "Email is required");
+    }
+    const normalizedEmail = String(email).trim().toLowerCase();
+
+    const sendGenericSuccess = () =>
+        res.status(200).json({
+            success: true,
+            message: "If this email is registered and not verified",
+        });
+
+    // find user
+    const user = await User.findOne({email: normalizedEmail});
+    if(!user){
+        return sendGenericSuccess();
+    }
+
+    // Already verified
+    if(user.isEmailVerified){
+        return sendGenericSuccess();
+    }
+
+    const {hashedToken, unHashedToken, tokenExpiry} = user.generateTemporaryToken();
+    user.emailVerificationToken = hashedToken;
+    user.emailVerificationExpiry = new Date(tokenExpiry);
+
+    await user.save({validateBeforeSave: false});
+
+    const transporter = nodemailer.createTransport({
+        host: process.env.MAILTRAP_SMTP_HOST,
+        port: process.env.MAILTRAP_SMTP_PORT,
+        secure: false, // true for 465, false for other ports
+        auth: {
+            user: process.env.MAILTRAP_SMTP_USER,
+            pass: process.env.MAILTRAP_SMTP_PASS,
+        },
+    });
+
+    const mailOption = {
+        from: process.env.MAILTRAP_SENDEREMAIL,
+        to: user.email,
+        subject: "Please verify your email ✔",
+        text: `click on following link : ${process.env.BASE_URL}/api/v1/user/verify${unHashedToken}`, // plain‑text body
+        html: `<p>Click to verify your email <a href="${process.env.BASE_URL}/api/v1/user/verify${unHashedToken}"></p>`,
+    };
+    
+    await transporter.sendMail(mailOption); 
+
+    return sendGenericSuccess();
 });
 
 const refreshAccessToken = asyncHandler(async (req, res) => {
-    const tokenFromCooky = req.cookie?.refreshToken || req.body?.refreshToken;
-
+    const {email ,username, password, role} = req.body;
     // validation
         // resive refresh token from cookies or body
-        // verify token
-        // refresh the token reset expiry time
+        // verify token with jwt
+        // find user and verify token matches the token stored in db
+        // set new refresh token and access token and then reset expiry time
         // save
+        // update cookies
 
-        
+    const tokenFromCooky = req.cookies?.refreshToken; // || req.body?.refreshToken;
+    if(!tokenFromCooky){
+        throw new ApiError(401, "Refresh token is missing");
+    }
+
+    let decoded;
+    try {
+        decoded = jwt.verify(incomingToken, process.env.REFRESH_TOKEN_SECRET);
+    } catch (err) {
+        throw new ApiError(401, "Invalid or expired refresh token");
+    }
+
+    const userIdFromToken = decoded._id;
+    if (!userIdFromToken) {
+        throw new ApiError(401, "Invalid token payload");
+    }
+
+    const user = await User.findById(userIdFromToken);
+    if(!user || !user.refreshToken){
+        throw new ApiError(401, "Unauthorised");
+    }
+
+    if(user.refreshToken !== tokenFromCooky){
+        throw new ApiError(401, "Refresh token not match...");
+    }
+
+    const newAccessToken = user.generateAccessToken();
+    const newRefreshToken = user.generateRefreshToken();
+
+    user.refreshToken = newRefreshToken;
+    await user.save({validateBeforeSave: false});
+
+    const accessCookieOptions = {
+        httpOnly: true,
+        secure: true,
+        maxAge: 24 * 60 * 60 * 1000,
+    };
+
+    const refreshCookieOptions = {
+        httpOnly: true,
+        secure: true,
+        sameSite: 'strict',
+        path: '/',
+        maxAge: 7 * 24 * 60 * 60 * 1000,
+    };
+
+    // update cookie
+    res.cookie("token", newAccessToken, accessCookieOptions);
+    res.cookie("refreshToken", newRefreshToken, refreshCookieOptions)
+
+    return res.status(200).json({
+        success: true,
+        message: "Access token refreshed",
+        accessToken: newAccessToken,
+    });
 });
 
 const frogotPasswordRequest = asyncHandler(async (req, res) => {
@@ -268,15 +389,69 @@ const frogotPasswordRequest = asyncHandler(async (req, res) => {
 });
 
 const changeCurrentPassword = asyncHandler(async (req, res) => {
-    const { email,username, password, role} = req.body;
+    const {email, password, newPassword, conformPassword} = req.body;
 
     // validation
+        // email, password from req.body
+        // checking user exsists
+        // find user in db
+        // check pass and current pass are same or not
+        // new password and conform pass
+        // store in db
+
+        const userEmail = req.user?.email;
+        if(!userEmail){
+            throw new ApiError(409, "Unauthorized");
+        }
+
+        const user = await User.findOne({email});
+        if(!user){
+            throw new ApiError(409, "Email doesn't match...")
+        }
+
+        const ok = await user.isPasswordCorrect(password)
+        if(!ok){
+            throw new ApiError(409, "Password doesn't match");
+        }
+
+        user.password = newPassword;
+        user.refreshToken = undefined;
+
+        await user.save();
+        
+        return res.status(200).json({
+            success: true,
+            message: "Password changed successfully..",
+        })
 });
 
 const getCurrentUser = asyncHandler(async (req, res) => {
-    const { email,username, password, role} = req.body;
+    const {email, username, password, role} = req.body;
 
     // validation
+        // get user from req.user
+        // return email, pass, role, etc.
+        
+    const user = req.user;
+
+    if(!user){
+        throw new ApiError(401, "User not autenticated");
+    }
+
+    res.status(200).json({
+        success: true,
+        message: "Current user retrived successfully",
+        user:{
+            id: user._id,
+            username: user.username,
+            fullname: user.fullname,
+            email: user.email,
+            isEmailVerified: user.isEmailVerified,
+            role: user.role,
+            createdAt: user.createdAt,
+            updatedAt: user.updatedAt,
+        }
+    });
 });
 
 export {registerUser, loginUser, logoutUser, verifiEmail, resendVerificationEmail, refreshAccessToken, frogotPasswordRequest, changeCurrentPassword, getCurrentUser}

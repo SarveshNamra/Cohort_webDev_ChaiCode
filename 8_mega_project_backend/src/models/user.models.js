@@ -38,6 +38,12 @@ const userSchema = new Schema({
         type: String,
         required: [true, "password is required"],
     },
+    newPassword: {
+        type: String,
+    },
+    conformPassword: {
+        type: String,
+    },
     forgotPasswordToken: {
         type: String,
     },
