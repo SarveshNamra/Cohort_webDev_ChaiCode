@@ -118,34 +118,45 @@ const verifyUser = async (req, res) => {
     // return responce
 
     // 1. get token from url
+    try{
+        const {token} = req.params;    //req.params issay jo bhi parameter may ya url may aa rahahai wo sab mil jata hai.
+        console.log(token); 
+        if(!token){
+            return res.status(400).json({
+                message: "Invalid Token",
+            });
+        }
 
-    const {token} = req.params;    //req.params issay jo bhi parameter may ya url may aa rahahai wo sab mil jata hai.
-    console.log(token); 
-    if(!token){
-        res.status(400).json({
-            message: "Invalid Token",
+        // 2. Validate
+        
+        // 3. find user based on token
+        const user = await User.findOne({verificationToken: token})
+        
+        if(!user){
+            return res.status(400).json({
+                message: "Invalid Token",
+            });
+        }
+
+        //4. remove verification token
+        user.isVerified = true
+        user.verificationToken = undefined
+
+        // 5. save
+        await user.save()
+
+        // 6. return responce
+        res.status(200).json({
+            success: true,
+            message: "User verified successfully"
+        });
+    }catch(error){
+        res.status(500).json({
+            success: false,
+            message: "Error verifying user",
+            error: error.message
         });
     }
-
-    const user = await User.findOne({verificationToken: token})
-    // 2. Validate
-
-    // 3. find user based on token
-    if(!user){
-        res.status(400).json({
-            message: "Invalid Token",
-        });
-    }
-
-    //4. remove verification token
-    user.isVerified = true
-    user.verificationToken = undefined
-
-    // 5. save
-    await user.save()
-
-    // 6. return responce
-    
 };
 
 const login = async (req, res) => {
