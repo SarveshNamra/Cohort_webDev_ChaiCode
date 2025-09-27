@@ -1,5 +1,5 @@
 import { Router } from "express";
-import {registerUser} from "../controllers/auth.controllers.js";
+import {registerUser, verifiEmail, resendVerificationEmail} from "../controllers/auth.controllers.js";
 import {validate} from "../middleware/validator.middleware.js";
 import { userRegistrationValidator } from "../validators/index.js";
 
@@ -18,5 +18,9 @@ karneko to ham validate file may kar sakate the like registrationCheck, loginChe
 Par ye alag syntax bhi to samaj aana chaheye to isleya likha.
 This type of code writing is called factory pattern.
 */
+
+// Email verification routes
+router.route("/verify/:unHashedToken").get(verifiEmail);
+router.route("/resend-verification").post(resendVerificationEmail);
 
 export default router;

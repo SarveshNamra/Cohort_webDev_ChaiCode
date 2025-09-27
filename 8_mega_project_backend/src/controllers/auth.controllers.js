@@ -14,7 +14,7 @@ import { throwDeprecation } from "process";
 
 const registerUser = asyncHandler(async (req, res) => {
     // 1. get user data 
-    const {username, email, password, role} = req.body;
+    const {username, email, password , fullname, role} = req.body;
 
     // validation
 
@@ -41,7 +41,7 @@ const registerUser = asyncHandler(async (req, res) => {
             }
 
             // added user in db
-            const user = exsistingUser && !existingUser.isEmailVerified 
+            const user = existingUser && !existingUser.isEmailVerified 
             ? exsistingUser :
             await User.create({
                 username, fullname, email, password, role
@@ -74,8 +74,8 @@ const registerUser = asyncHandler(async (req, res) => {
                 to: user.email,
                 subject: "Please verify your email ✔",
                 text: `click on following link : 
-                        ${process.env.BASE_URL}/api/v1/user/verify${unHashedToken}`, // plain‑text body
-                html: `<p>Click to verify your email <a href="${process.env.BASE_URL}/api/v1/user/verify${unHashedToken}"></p>`,
+                        ${process.env.BASE_URL}/api/v1/user/verify/${unHashedToken}`, // plain‑text body
+                html: `<p>Click to verify your email <a href="${process.env.BASE_URL}/api/v1/user/verify/${unHashedToken}">Verify Email</p>`,
             }
 
             await transporter.sendMail(mailOption);        
@@ -127,7 +127,7 @@ const loginUser = asyncHandler(async (req, res) => {
         secure: true,
         maxAge: 24*60*60*1000
     }
-    res.cookie("token", token, cookieOptions)
+    res.cookie("accessToken", token, cookieOptions)
 
     res.status(200).json({
         success: true,
@@ -155,7 +155,7 @@ const logoutUser = asyncHandler(async (req, res) => {
         path: '/',
     };
 
-    res.cookie('token', '', {
+    res.cookie('accessToken', '', {
         expires: new Date(0)     // cookies get imediately clear.
     });
 
@@ -203,7 +203,7 @@ const verifiEmail = asyncHandler(async (req, res) => {
     user.emailVerificationExpiry = undefined;
 
     // save
-    user.save();
+    await user.save();
 
     // response
     res.status(200).json({
@@ -220,7 +220,7 @@ const resendVerificationEmail = asyncHandler(async (req, res) => {
         // find user
         // Generate a new verification token
 
-    if(!user){
+    if(!email){
         throw new ApiError(400, "Email is required");
     }
     const normalizedEmail = String(email).trim().toLowerCase();
@@ -262,8 +262,8 @@ const resendVerificationEmail = asyncHandler(async (req, res) => {
         from: process.env.MAILTRAP_SENDEREMAIL,
         to: user.email,
         subject: "Please verify your email ✔",
-        text: `click on following link : ${process.env.BASE_URL}/api/v1/user/verify${unHashedToken}`, // plain‑text body
-        html: `<p>Click to verify your email <a href="${process.env.BASE_URL}/api/v1/user/verify${unHashedToken}"></p>`,
+        text: `click on following link : ${process.env.BASE_URL}/api/v1/user/verify/${unHashedToken}`, // plain‑text body
+        html: `<p>Click to verify your email <a href="${process.env.BASE_URL}/api/v1/user/verify/${unHashedToken}"></p>`,
     };
     
     await transporter.sendMail(mailOption); 
@@ -288,7 +288,7 @@ const refreshAccessToken = asyncHandler(async (req, res) => {
 
     let decoded;
     try {
-        decoded = jwt.verify(incomingToken, process.env.REFRESH_TOKEN_SECRET);
+        decoded = jwt.verify(tokenFromCooky, process.env.REFRESH_TOKEN_SECRET);       //verify(incomingToken, process.env.REFRESH_TOKEN_SECRET);
     } catch (err) {
         throw new ApiError(401, "Invalid or expired refresh token");
     }
@@ -328,7 +328,7 @@ const refreshAccessToken = asyncHandler(async (req, res) => {
     };
 
     // update cookie
-    res.cookie("token", newAccessToken, accessCookieOptions);
+    res.cookie("accessToken", newAccessToken, accessCookieOptions);
     res.cookie("refreshToken", newRefreshToken, refreshCookieOptions)
 
     return res.status(200).json({
