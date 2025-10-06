@@ -5,10 +5,6 @@ import nodemailer from "nodemailer";
 import bcrypt from "bcryptjs";
 import jwt from "jsonwebtoken";
 import { ApiError } from "../utils/api-error.js";
-import { error } from "console";
-import { Suspense, use } from "react";
-import { IncomingMessage } from "http";
-import { throwDeprecation } from "process";
 
 // ----> Homework to complete all the validations <----
 
@@ -33,8 +29,10 @@ const registerUser = asyncHandler(async (req, res) => {
 
             // check user already exsists
             const existingUser = await User.findOne({email});
+            // 'User' refers to a model or class and 'user' refers to an instance of that model
             // 'user' is a Mongoose document instance - When you do await 'User.findOne({email})', 
             // it returns a Mongoose document (not a plain object).
+            // If the variable name matches the key name in the object, you can use this shorthand instead of writing email: email.
 
             if(existingUser && existingUser.isEmailVerified){
                 throw new ApiError(409, "User already exsists");
@@ -42,7 +40,7 @@ const registerUser = asyncHandler(async (req, res) => {
 
             // added user in db
             const user = existingUser && !existingUser.isEmailVerified 
-            ? exsistingUser :
+            ? existingUser :
             await User.create({
                 username, fullname, email, password, role
             });
@@ -78,7 +76,11 @@ const registerUser = asyncHandler(async (req, res) => {
                 html: `<p>Click to verify your email <a href="${process.env.BASE_URL}/api/v1/user/verify/${unHashedToken}">Verify Email</p>`,
             }
 
-            await transporter.sendMail(mailOption);        
+            await transporter.sendMail(mailOption);     
+            res.status(200).json({
+                success: true,
+                message: "User registered successfully",
+            });
 });
 
 const loginUser = asyncHandler(async (req, res) => {
@@ -124,7 +126,7 @@ const loginUser = asyncHandler(async (req, res) => {
 
     const cookieOptions = {
         httpOnly: true,
-        secure: true,
+        secure: false,
         maxAge: 24*60*60*1000
     }
     res.cookie("accessToken", token, cookieOptions)
@@ -190,7 +192,7 @@ const verifiEmail = asyncHandler(async (req, res) => {
     // find user and check expiry
     const user = await User.findOne({
         emailVerificationToken: hashedToken,
-        emailVerificationExpiry:{ $gt: now.Date() }, // Not expired
+        emailVerificationExpiry:{ $gt: new Date() }, // Not expired
     });
 
     if(!user){
@@ -315,13 +317,13 @@ const refreshAccessToken = asyncHandler(async (req, res) => {
 
     const accessCookieOptions = {
         httpOnly: true,
-        secure: true,
+        secure: false,
         maxAge: 24 * 60 * 60 * 1000,
     };
 
     const refreshCookieOptions = {
         httpOnly: true,
-        secure: true,
+        secure: false,
         sameSite: 'strict',
         path: '/',
         maxAge: 7 * 24 * 60 * 60 * 1000,
@@ -356,7 +358,7 @@ const frogotPasswordRequest = asyncHandler(async (req, res) => {
     const {hashedToken, unHashedToken, tokenExpiry} = user.generateTemporaryToken();
 
     user.forgotPasswordToken = hashedToken;
-    user.forgotPasswordExpiry = now.Date(tokenExpiry);
+    user.forgotPasswordExpiry = new Date(tokenExpiry);
     await user.save({validateBeforeSave:false}); // to skip other validations
 
     const resetUrl = `${process.env.BASE_URL}/reset-password/${unHashedToken}`;

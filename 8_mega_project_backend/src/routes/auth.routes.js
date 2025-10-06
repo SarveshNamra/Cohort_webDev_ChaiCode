@@ -20,7 +20,8 @@ This type of code writing is called factory pattern.
 */
 
 // Email verification routes
-router.route("/verify/:unHashedToken").get(verifiEmail);
+router.route("/verify/:unHashedToken").get(verifiEmail); //Here, :unHashedToken is a route parameter, and when a request is made to a URL
+                                                        // like /verify/abc123, the unHashedToken parameter will hold the value abc123
 router.route("/resend-verification").post(resendVerificationEmail);
 
 export default router;
