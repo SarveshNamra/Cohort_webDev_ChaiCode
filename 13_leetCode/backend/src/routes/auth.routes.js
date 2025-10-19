@@ -1,13 +1,14 @@
 import express from "express";
+import { check, login, logout, register } from "../controllers/auth.controllers.js";
 
-const authRouts = express.Router();
+const authRoutes = express.Router();
 
-authRouts.post("/register");
+authRoutes.post("/register", register);
 
-authRouts.post("/login");
+authRoutes.post("/login", login);
 
-authRouts.post("/logout");
+authRoutes.post("/logout", logout);
 
-authRouts.get("/check");
+authRoutes.get("/check", check);
 
-export default authRouts;
+export default authRoutes;
