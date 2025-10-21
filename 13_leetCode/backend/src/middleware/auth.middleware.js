@@ -52,3 +52,39 @@ export const authMiddlewre = async (req, res, next) => {
         });
     }
 }
+
+export const checkAdmin = async (req, res, next) => {
+    try {
+        const userId = req.user.id;
+
+        if(!userId){
+            return res.status(401).json({
+                success: false,
+                message: "User id not found"
+            });
+        }
+
+        const user = await db.user.findUnique({
+            where: {
+                id: userId
+            },
+            select: {
+                role: true
+            }
+        });
+
+        if(!user || user.role !== "ADMIN"){
+            return res.status(403).json({
+                success: false,
+                message: "You don't have permission to this resource - Admins only"
+            });
+        }
+
+        next();
+    } catch (error) {
+        console.error("Error checking admin role : ", error);
+        return res.status(500).json({
+            message: "Error checking admin role"
+        });
+    }
+}
