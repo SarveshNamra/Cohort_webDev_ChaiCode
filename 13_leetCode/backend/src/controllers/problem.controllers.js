@@ -15,6 +15,12 @@ export const createProblem = async (req, res) => {
         for(const [language, solutionCode] of Object.entries(referenceSolutions)){
             const languageId = getJudge0LanguageId(language);
 
+        // Object.entries(referenceSolutions) converts this object into an array of key-value pairs, 
+        // i.e., an array of arrays. Each array contains two elements:
+        // the first element is the language name (like "python", "java", etc.), and the second element is the solution code (source code) written for that language.
+        // referenceSolutions is likely an object where the keys are programming language names 
+        // (like "python", "java", etc.), and the values are the solution code (source code) written for that language.
+
             if(!languageId){
                 return res.status(400).json({
                     success: false,
@@ -22,6 +28,7 @@ export const createProblem = async (req, res) => {
                 });
             }
 
+            // yha pay array of submissions ready kre for each languages(test cases) -->
             const submissions = testCases.map(({input, output})=> ({
                 source_code: solutionCode,
                 language_id: languageId,
@@ -31,17 +38,19 @@ export const createProblem = async (req, res) => {
 
             const submissionResult = await submitBatch(submissions);    // Here we are getting token's
 
-            const tokens = submissionResult.map((res) => res.token);    // extracting token's\
+            const tokens = submissionResult.map((res) => res.token);    // extracting token's. tokens ke values ko extract krenge
 
             const results = await pollBatchResults(tokens);            // polling the results
 
             for(let i=0; i < results.length; i++){
-                const results = results[i];
+                const result = results[i];
 
-                if(results.status.id !== 3){
+                console.log(`TestCase ${i+1} and language ${language} ----- result is ${JSON.stringify(result.status.description)}`);
+
+                if(result.status.id !== 3){
                     return res.status(400).json({
                         success: false,
-                        error: `Test case ${i+1} failed for language ${language}`
+                        error: `TestCase ${i+1} failed for language ${language}`
                     });
                 }
             }
