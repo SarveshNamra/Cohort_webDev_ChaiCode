@@ -21,7 +21,7 @@
         }
     },
     "constraints": "-10^9 ≤ a, b ≤ 10^9",
-    "testcases": [
+    "testCases": [
         {
             "input": "100 200",
             "output": "300"
