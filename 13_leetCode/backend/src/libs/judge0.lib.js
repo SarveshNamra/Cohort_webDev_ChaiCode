@@ -1,7 +1,16 @@
+import dotenv from "dotenv";
 import axios from "axios";
 
-const JUDGE0_BASE_URL = process.env.JUDGE0_API_URL || "http://localhost:2358";
+dotenv.config();
 
+const judge0Client = axios.create({
+  baseURL: process.env.JUDGE0_API_URL,
+  headers: {
+    "Content-Type": "application/json",
+    "X-RapidAPI-Key": process.env.JUDGE0_RAPIDAPI_KEY,
+    "X-RapidAPI-Host": process.env.JUDGE0_RAPIDAPI_HOST || "judge0-ce.p.rapidapi.com",
+  },
+});
 
 export const getJudge0LanguageId = (Language) =>{
     const languageMap = {
@@ -13,37 +22,41 @@ export const getJudge0LanguageId = (Language) =>{
     return languageMap[Language.toUpperCase()];
 }
 
-const sleep = (ms) => new Promise(resolve => setTimeout(resolve, ms));
+const sleep = (ms) => new Promise((r) => setTimeout(r, ms));
 
 export const pollBatchResults = async (tokens) => {
-    while(true){
-        const {data} = await axios.get(`${JUDGE0_BASE_URL}/submissions/batch`, {
-            params: {
-                tokens: tokens.join(","),
-                base64_encoded: false
-            }
-        });
+  while (true) {
+    const { data } = await judge0Client.get("/submissions/batch", {
+      params: {
+        tokens: tokens.join(","),
+        base64_encoded: "false",
+        fields: "*",
+      },
+    });
 
-        const results = data.submissions;
+    const results = data.submissions || data;
 
-        const isAllDone = results.every(
-            (r) => r.status.id !== 1 && r.status.id !== 2
-        );
+    const isAllDone = results.every(
+      (r) => r.status.id !== 1 && r.status.id !== 2 // 1: In Queue, 2: Processing
+    );
 
-        if(isAllDone){
-            return results;
-        }
+    if (isAllDone) return results;
 
-        await sleep(1000);
-    }
-}
+    await sleep(1000);
+  }
+};
 
 export const submitBatch = async (submissions) => {
-    const {data} = await axios.post(`${JUDGE0_BASE_URL}/submissions/batch?base64_encoded=false`, {submissions});
-    // const url = `${JUDGE0_BASE.replace(/\/+$/, '')}/submissions/batch?base64_encoded=false`;
-    // const { data } = await axios.post(url, { submissions });
+  const { data } = await judge0Client.post(
+    "/submissions/batch",
+    { submissions },
+    {
+      params: {
+        base64_encoded: "false", // IMP
+        wait: "false",
+      },
+    }
+  );
 
-    console.log("Submission data", data);
-
-    return data.submissions || data; // here data is an array like [{token}, {token}, {token}]
-}
+  return data.submissions || data; // here data is an array like [{ token }, ...]
+};

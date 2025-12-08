@@ -32,8 +32,8 @@ export const createProblem = async (req, res) => {
             const submissions = testCases.map(({input, output})=> ({
                 source_code: solutionCode,
                 language_id: languageId,
-                stdin: input,
-                expected_output: output
+                stdin: input ?? "",
+                expected_output: output ?? "",
             }));
 
             const submissionResult = await submitBatch(submissions);    // Here we are getting token's
@@ -54,21 +54,21 @@ export const createProblem = async (req, res) => {
                         error: `TestCase ${i+1} failed for language ${language}`
                     });
                 }
+
+                // save the problem in DB
+                const problem = await db.problem.create({
+                    data: {
+                        title, description, difficulty, tags, examples, constraints, 
+                        testCases, codeSnippets, referenceSolutions, 
+                        userId: req.user.id
+                    },
+                });
+
+                return res.status(201).json({
+                    success: true,
+                    problem
+                });
             }
-
-            // save the problem in DB
-            const problem = await db.problem.create({
-                data: {
-                    title, description, difficulty, tags, examples, constraints, 
-                    testCases, codeSnippets, referenceSolutions, 
-                    userId: req.user.id
-                },
-            });
-
-            return res.status(201).json({
-                success: true,
-                problem
-            });
         }
     } catch (error) {
         console.error("Error in creating problem", error);
