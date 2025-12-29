@@ -1,34 +1,117 @@
-import { submitBatch, pollBatchResults } from "../libs/judge0.lib.js";
+import { submitBatch, pollBatchResults, getJudge0LanguageId } from "../libs/judge0.lib.js";
 
 export const executeCode = async (req, res) => {
     const {source_code, language_id, stdin, expected_outputs, problemId} = req.body;
     const userId = req.user.id;
 
     try {
-       // validation test cases
-       if(
+        // validation test cases
+        if(
             !Array.isArray(stdin) || stdin.length === 0 ||
             !Array.isArray(expected_outputs) || expected_outputs.length !== stdin.length
         ){
            return res.status(400).json({
             error: "Invalid or Missing test cases"
            })
-       }
-       // prepare each test cases for judge0 batch submissions
-       const submissions = stdin.map((input) => ({
+        }
+        // prepare each test cases for judge0 batch submissions
+        const submissions = stdin.map((input) => ({
             source_code,
             language_id,
             stdin: input,
-       }));
+        }));
 
-       // send batch submissions to judge0
-       const submitResponse = await submitBatch(submissions);
+        // send batch submissions to judge0
+        const submitResponse = await submitBatch(submissions);
 
-       const tokens = submitResponse.map((res) => res.token);
+        const tokens = submitResponse.map((res) => res.token);
+ 
+        // poll judge0 for results of all submitted test cases
+        const results = await pollBatchResults(tokens);
 
-       // poll judge0 for results of all submitted test cases
-       const results = await pollBatchResults(tokens);
-    } catch (error) {
+        console.log(`Results --------`);
+        console.log(results);
+
+        // Analyze results and compare with expected outputs
+        let allPassed = true;
+        const detailedResults = results.map((result, i) => {
+            const stdout = result.stdout?.trim();
+            const expected_output = expected_outputs[i]?.trim();
+            const passed = stdout === expected_output;
+
+            if(!passed) allPassed = false;
+
+            // console.log(`TestCas #${i+1}`);
+            // console.log(`Input for testcase #${i+1} : ${stdin[i]}`);
+            // console.log(`Expected Output for the testcase #${i+1} : ${expected_output}`);
+            // console.log(`Actual output for testcase #${i+1} :  ${stdout}`);
+
+            // console.log(`Matched for testcase #${i+1} : ${passed}`)
+
+            return {
+                testCase:i+1,
+                passed,
+                stdout,
+                expected:expected_output,
+                stderr:result.stderr || null,
+                compile_output:result.compile_output || null,
+                status:result.status.description,
+                memory:result.memory ? `${result.memory} KB` : undefined,
+                time:result.time ? `${result.time}` : undefined,
+            }
+        })
+        console.log(detailedResults);
+
+        // store submission summary
+        const submission = await db.submission.create({
+            data: {
+                userId,
+                problemId,
+                sourceCode:source_code,
+                language: getLanguageName(language_id),
+                stdin:stdin.join("\n"),
+                stdout:JSON.stringify(detailedResults.map((r)=>r.stdout)),
+                stderr:detailedResults.some((r)=>r.stderr)
+                  ? JSON.stringify(detailedResults.map((r)=>r.stderr)) 
+                  : null,
+                compileOutput:detailedResults.some((r)=>r.compile_output)
+                  ? JSON.stringify(detailedResults.map((r)=>r.compile_output)) 
+                  : null,
+                status:allPassed ? "Accepted" : "Wrong Answer",
+                memory:detailedResults.some((r)=>r.memory)
+                  ? JSON.stringify(detailedResults.map((r)=>r.memory)) 
+                  : null,
+                time:detailedResults.some((r)=>r.time)  
+                  ? JSON.stringify(detailedResults.map((r)=>r.time)) 
+                  : null,
+            },
+        });
+
+        // If all passed = true then, mark problems as solved for the current user
+        if(allPassed){
+            await db.problemSolved.upsert({
+                where: {
+                    userId_problemId:{
+                        userId, problemId
+                    }
+                },
+                update: {},
+                create: {
+                    userId, problemId
+                }
+            })
+        }
+
+        // Save individual test case results
         
+
+        res.status(200).json({
+            message: "Code Executed Successfully !",
+        });
+    } catch (error) {
+        res.status(500).json({
+            success: false,
+            message: "Error in executing code",
+        });
     }
 }
