@@ -1,5 +1,5 @@
 import { db } from "../libs/db.js";
-import { deleteProblem } from "./problem.controllers";
+import { deleteProblem } from "./problem.controllers.js";
 
 export const createPlaylist = async (req, res) => {
     try {
