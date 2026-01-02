@@ -1,21 +1,22 @@
-import React , {useState} from 'react'
-import {useForm} from "react-hook-form"
-import {zodResolver} from "@hookform/resolvers/zod"
-import { Link } from 'react-router-dom'
+import React , {useState} from "react";
+import {useForm} from "react-hook-form";
+import {zodResolver} from "@hookform/resolvers/zod";
+import { Link } from "react-router-dom";
 import { Code, Eye, EyeOff, Loader2, Lock, Mail } from "lucide-react";
 import {z} from "zod";
-import AuthImagePattern from '../components/AuthImagePattern';
-
+import AuthImagePattern from "../components/AuthImagePattern";
+import { useAuthStore } from "../store/useAuthStore";
 
 const LoginSchema = z.object({
   email: z.string().email("Enter a valid email"),
   password: z.string().min(6 , "Password must be atleast of 6 characters"),
-})
+});
 
 const LoginPage = () => {
 
   // const {isLoggingIn , login} = useAuthStore()
   const [showPassword , setShowPassword] = useState(false);
+  const {login, isLoggingIn} = useAuthStore()
 
   const {
     register ,
@@ -26,13 +27,11 @@ const LoginPage = () => {
   })
 
   const onSubmit = async (data)=>{
-    console.log(data);
-    // try {
-    //   await login(data)
-      
-    // } catch (error) {
-    //   console.error("Signup failed" , error)
-    // }
+    try {
+      await login(data);
+    } catch (error) {
+      console.error("Signup failed" , error);
+    }
   }
 
 
@@ -114,17 +113,16 @@ const LoginPage = () => {
             <button
               type="submit"
               className="btn btn-primary w-full"
-              // disabled={isLoggingIn}
+              disabled={isLoggingIn}
             >
-               {/* {isLoggingIn ? (
+              {isLoggingIn ? (
                 <>
                   <Loader2 className="h-5 w-5 animate-spin" />
                   Loading...
                 </>
               ) : (
                 "Sign in"
-              )} */}
-              Login
+              )}
             </button>
           </form>
 
@@ -148,7 +146,7 @@ const LoginPage = () => {
         }
       />
     </div>
-  )
+  );
 }
 
 export default LoginPage

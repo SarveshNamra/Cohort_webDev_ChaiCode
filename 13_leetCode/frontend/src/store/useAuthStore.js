@@ -4,7 +4,7 @@ import {axiosInstance} from "../lib/axios";
 import toast from "react-hot-toast";
 
 
-export const userAuthStore = create((set) => ({
+export const useAuthStore = create((set) => ({
     authUser: null,
     isSigninUp: false,
     isLoggingIn: false,
@@ -66,5 +66,5 @@ export const userAuthStore = create((set) => ({
             console.log("Error logging out", error);
             toast.error("Error logging out");
         }
-    },
+    }
 }));

@@ -1,19 +1,22 @@
-import React, {useState} from 'react'
-import {useForm} from "react-hook-form"
-import {zodResolver} from "@hookform/resolvers/zod"
-import { Link } from "react-router-dom"
-import { Code, Eye, EyeOff, Loader2, Lock, Mail } from 'lucide-react'
-import {z} from "zod"
-import AuthImagePattern from '../components/AuthImagePattern'
+import React, {useState} from "react";
+import {useForm} from "react-hook-form";
+import {zodResolver} from "@hookform/resolvers/zod";
+import { Link } from "react-router-dom";
+import { Code, Eye, EyeOff, Loader2, Lock, Mail } from "lucide-react";
+import {z} from "zod";
+import AuthImagePattern from "../components/AuthImagePattern";
+import { useAuthStore } from "../store/useAuthStore";
 
 const SignUpSchema = z.object({
   email: z.string().email("Enter a valid email"),
   password: z.string().min(6, "Password must be of at least 6 characters"),
   name: z.string().min(3, "Name must be of at least 3 characters"),
-})
+});
 
 const SignUpPage = () => {
+  
   const [showPassword, setShowPassword] = useState(false);
+  const {signup, isSigninUp} = useAuthStore()
 
   // UseForm is react hook form is a library used to build robust forms with ease
   // UseFrom hook is used to handle form state and validation
@@ -26,7 +29,12 @@ const SignUpPage = () => {
   })
 
   const onSubmit = async (data) => {
-    console.log(data);
+    try {
+      await signup(data);
+      console.log("signup data", data);
+    } catch (error) {
+      console.error("Signup error", error);
+    }
   }
 
   return (
@@ -131,17 +139,16 @@ const SignUpPage = () => {
             <button
               type="submit"
               className="btn btn-primary w-full"
-            //  disabled={isSigninUp}
+              disabled={isSigninUp}
             >
-               {/* {isSigninUp ? (
+              {isSigninUp ? (
                 <>
                   <Loader2 className="h-5 w-5 animate-spin" />
                   Loading...
                 </>
               ) : (
-                "Sign in"
-              )} */}
-              SignUp
+                "Sign Up"
+              )}
             </button>
           </form>
 
@@ -162,7 +169,7 @@ const SignUpPage = () => {
         subtitle="Sign up to explore coding challenges, enhance your skills, and join a vibrant community of developers."
       />
     </div>
-  )
+  );
 }
 
 export default SignUpPage
