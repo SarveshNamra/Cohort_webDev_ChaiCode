@@ -5,6 +5,9 @@ import { Play, FileText, MessageSquare, Lightbulb, Bookmark, Share2,
   Clock, ChevronRight, BookOpen, Terminal, Code2, Users, ThumbsUp, Home } from "lucide-react";
 
 import { useProblemStore } from "../store/useProblemStore";
+import { useExecutionStore } from "../store/useExecutionStore";
+import { getLanguageId } from "../lib/lang";
+import SubmissionResults from "../components/Submission";
 
 const ProblemPage = () => {
     const {id} = useParams();
@@ -16,6 +19,7 @@ const ProblemPage = () => {
     const [isBookmarked, setIsBookmarked] = useState(false);
     const [testCases, setTestCases] = useState([]);
 
+    const {executeCode, submission, isExecuting} = useExecutionStore();
     const submissionCount = 10;
 
     useEffect(() => {
@@ -40,8 +44,6 @@ const handleLanguageChange = (e) => {
     setSelectedLanguage(lang);
     setCode(problem.codeSnippets?.[lang] || "");
 }
-
-const submission = false;
 
 const renderTabContent = () => {
     switch (activeTab) {
@@ -139,6 +141,34 @@ const renderTabContent = () => {
     }
 };
 
+const handleRunCode = (e) => {
+    e.preventDefault();
+    if (!problem || !problem.testCases) {
+        console.error("Problem data not loaded");
+        return;
+    }
+    try {
+        const language_id = getLanguageId(selectedLanguage);
+        const stdin = problem.testCases.map((tc) => tc.input);
+        const expected_outputs = problem.testCases.map((tc) => tc.output);
+        executeCode(code, language_id, stdin, expected_outputs, id);
+    } catch (error) {
+        console.error("Error running code:", error);
+    }
+}
+
+
+
+if (isProblemLoading || !problem) {
+    return (       
+        <div className="min-h-screen bg-gradient-to-br from-base-300 to-base-200 max-w-7xl w-full flex items-center justify-center">            
+            <div className="text-center">                
+                <div className="loading loading-spinner loading-lg"></div>                
+                <p className="mt-4 text-lg">Loading problem...</p>            
+            </div>        
+        </div>    
+    );
+}
     return (
         <div className="min-h-screen bg-gradient-to-br from-base-300 to-base-200 max-w-7xl w-full">
             <nav className="navbar bg-base-100 shadow-lg px-4">
@@ -272,10 +302,11 @@ const renderTabContent = () => {
                         <div className="p-4 border-t border-base-300 bg-base-200">
                             <div className="flex justify-between items-center">
                             <button
-                                className={`btn btn-primary gap-2 `}
-                                onClick={() => {}}
+                                className={`btn btn-primary gap-2 ${isExecuting ? "loading" : ""}`}
+                                onClick={handleRunCode}
+                                disabled={isExecuting}
                             >
-                                <Play className="w-4 h-4" />
+                                {!isExecuting && <Play className="w-4 h-4" />}
                                 Run Code
                             </button>
                             <button className="btn btn-success gap-2">
@@ -290,7 +321,9 @@ const renderTabContent = () => {
                 <div className="card bg-base-100 shadow-xl mt-6">
                     <div className="card-body">
                         {
-                            submission ? (<h1>Submission Data</h1> ) : <>
+                            submission ? (
+                                <SubmissionResults submission={submission}/>
+                            ) : <>
                                 <div className="flex items-center justify-between mb-6">
                                 <h3 className="text-xl font-bold">Test Cases</h3>
                                 </div>

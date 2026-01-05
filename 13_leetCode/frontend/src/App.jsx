@@ -42,7 +42,7 @@ function App() {
         <Route path='/signup' 
         element={!authUser ? <SignUpPage/> : <Navigate to={"/"} />} />
 
-        <Route path="/Problem/:id" 
+        <Route path="/problem/:id" 
         element={authUser ? <ProblemPage/> : <Navigate to={"/login"}/>} />
 
         <Route element={<AdminRoute/>}>
