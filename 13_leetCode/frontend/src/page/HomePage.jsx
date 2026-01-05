@@ -10,7 +10,8 @@ const HomePage = () => {
       getAllProblems();
     }, [getAllProblems]);
 
-    console.log(problems);
+    console.log("All problems: ",problems);
+    console.log("Problem titles: ", problems.map(p => p.title));
 
     if(isProblemsLoading) {
       return (

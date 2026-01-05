@@ -36,6 +36,10 @@ const ProblemTable = ({problems}) => {
 
     const difficulties = ["EASY", "MEDIUM", "HARD"];
 
+    const handleDelete = (id) => {}
+
+    const handleAddToPlaylist = (id) => {}
+
     return (
       <div className="w-full max-w-6xl mx-auto mt-10">
         <div className="flex justify-between items-center mb-6">
@@ -95,9 +99,10 @@ const ProblemTable = ({problems}) => {
               </tr>
             </thead>
             <tbody>
-              {paginatedProblems.length > 0 ? (
+              {
+              paginatedProblems.length > 0 ? (
                 paginatedProblems.map((problem) => {
-                  const isSolved = problem.solvedBy.some(
+                  const isSolved = (problem.solvedBy || []).some(
                     (user) => user.userId === authUser?.id
                   );
                   return (
@@ -176,8 +181,28 @@ const ProblemTable = ({problems}) => {
               )}
             </tbody>
           </table>
-        </div>
-            
+        </div >
+
+        <div className="flex justify-center mt-6 gap-2">
+          <button className="btn btn-sm"
+          disabled={currentPage === 1}
+          onClick={() => setCurrentPage((prev) => prev-1)}
+          >
+            Prev
+          </button>
+
+          <span className="btn btn-ghost btn-sm">
+            {currentPage} / {totalPages}
+          </span>
+
+          <button
+          className="btn btn-sm"
+          disabled={currentPage === totalPages}
+          onClick={() => setCurrentPage((prev) => prev + 1)}
+          >
+            Next
+          </button>
+        </div>  
       </div>
     );
 }

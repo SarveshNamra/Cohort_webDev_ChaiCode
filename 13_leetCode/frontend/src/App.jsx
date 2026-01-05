@@ -9,6 +9,7 @@ import { useAuthStore } from "./store/useAuthStore";
 import Layout from "./layout/layout";
 import AdminRoute from "./components/AdminRoute";
 import AddProblem from "./page/AddProblem";
+import ProblemPage from "./page/ProblemPage";
 
 
 function App() {
@@ -40,6 +41,9 @@ function App() {
         
         <Route path='/signup' 
         element={!authUser ? <SignUpPage/> : <Navigate to={"/"} />} />
+
+        <Route path="/Problem/:id" 
+        element={authUser ? <ProblemPage/> : <Navigate to={"/login"}/>} />
 
         <Route element={<AdminRoute/>}>
           <Route path='/add-problem' element={authUser ? <AddProblem/> : <Navigate to='/'/>}/>
