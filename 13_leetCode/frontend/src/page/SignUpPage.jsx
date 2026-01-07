@@ -39,8 +39,14 @@ const SignUpPage = () => {
 
   return (
     <div className='h-screen grid lg:grid-cols-2'>
-      <div className="flex flex-col justify-center items-center p-6 sm:p-12">
-        <div className="w-full max-w-md space-y-8">
+      <div className="relative flex flex-col justify-center items-center p-6 sm:p-12 overflow-hidden">
+        {/* Background SVG */}
+        <img
+          src="/signup.svg"
+          alt="Signup background"
+          className="absolute inset-0 w-full h-full object-contain opacity-10 pointer-events-none"
+        />
+        <div className="relative z-10 w-full max-w-md space-y-8">
           {/* Logo */}
           <div className="text-center mb-8">
             <div className="flex flex-col items-center gap-2 group">
