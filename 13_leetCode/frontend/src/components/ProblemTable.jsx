@@ -1,15 +1,26 @@
 import React, {useState, useMemo} from "react";
 import {useAuthStore} from "../store/useAuthStore";
 import {Link} from "react-router-dom";
-import { Bookmark, PencilIcon, Trash, TrashIcon, Plus } from "lucide-react";
+import { Bookmark, PencilIcon, Trash, TrashIcon, Plus, Loader2 } from "lucide-react";
+import { useActions } from "../store/useAction";
+import { usePlaylistStore } from "../store/usePlaylistStore";
+import CreatePlaylistModal from "./CreatePlaylistModal";
+import AddToPlaylist from "./AddToPlaylist";
 
 const ProblemTable = ({problems}) => {
     const {authUser} = useAuthStore();
+    
     const [search, setSearch] = useState("");
     const [difficulty, setDifficulty] = useState("ALL");
     const [selectedTag, setSelectedTag] = useState("ALL");
     // ToDo - implement pagination
     const [currentPage, setCurrentPage] = useState(1);
+    const [isCreateModalOpen, setIsCreateModelOpen] = useState(false);
+    const [isAddToPlaylistModalOpen, setIsAddToPlaylistModalOpen] = useState(false);
+    const [selectedProblemId, setSelectedProblemId] = useState(null);
+
+    const {createPlaylist} = usePlaylistStore();
+    const {isDeletingProblem, onDeleteProblem} = useActions();
 
     // " useMemo " to extract all unique tags from problems. This prevents unnecessary, 
     // expensive re-computations, which can significantly improve performance
@@ -36,9 +47,19 @@ const ProblemTable = ({problems}) => {
 
     const difficulties = ["EASY", "MEDIUM", "HARD"];
 
-    const handleDelete = (id) => {}
+    const handleDelete = (id) => {
+      console.log("Delete problem with id:", id);
+      onDeleteProblem(id);
+    }
 
-    const handleAddToPlaylist = (id) => {}
+    const handleAddToPlaylist = (problemId) => {
+      setSelectedProblemId(probelmId);
+      setIsAddToPlaylistModalOpen(true);
+    }
+
+    const handleCreatePlaylist = async (data) => {
+      await createPlaylist(data);
+    }
 
     return (
       <div className="w-full max-w-6xl mx-auto mt-10">
@@ -46,7 +67,7 @@ const ProblemTable = ({problems}) => {
           <h2 className="text-2xl font-bold">Problems</h2>
           <button
             className="btn btn-primary gap-2"
-            onClick={() => {}}
+            onClick={() => setIsCreateModelOpen(true)}
           >
             <Plus className="w-4 h-4" />
             Create Playlist
@@ -153,7 +174,10 @@ const ProblemTable = ({problems}) => {
                                 onClick={() => handleDelete(problem.id)}
                                 className="btn btn-sm btn-error"
                               >
-                                <TrashIcon className="w-4 h-4 text-white" />
+                                {
+                                  isDeletingProblem ? <Loader2 className="animate-spin h-4 w-4"/> 
+                                  : <TrashIcon className="w-4 h-4 text-white" />
+                                }
                               </button>
                               <button disabled className="btn btn-sm btn-warning">
                                 <PencilIcon className="w-4 h-4 text-white" />
@@ -203,6 +227,17 @@ const ProblemTable = ({problems}) => {
             Next
           </button>
         </div>  
+              <CreatePlaylistModal
+              isOpen={isCreateModalOpen}
+              onClose={() => setIsCreateModelOpen(false)}
+              onSubmit={handleCreatePlaylist}
+              />
+
+              <AddToPlaylist
+              isOpen={isAddToPlaylistModalOpen}
+              onClose={() => setIsAddToPlaylistModalOpen(false)}
+              ProblemId={selectedProblemId}
+              />
       </div>
     );
 }

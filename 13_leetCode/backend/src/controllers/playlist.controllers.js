@@ -6,7 +6,7 @@ export const createPlaylist = async (req, res) => {
         const {name, description} = req.body;
         const userId = req.user.id;
 
-        const playList = await db.playlist.create({
+        const playList = await db.Playlist.create({
             data:{
                 name,
                 description,
@@ -30,7 +30,7 @@ export const createPlaylist = async (req, res) => {
 
 export const getAllListDetails = async (req, res) => {
     try {
-        const playLists = await db.playlist.findMany({
+        const playLists = await db.Playlist.findMany({
             where: {
                 userId: req.user.id,
             },
@@ -60,7 +60,7 @@ export const getAllListDetails = async (req, res) => {
 export const getPlayListDetails = async (req, res) => {
     const { playlistId } = req.params;
     try {
-        const playList = await db.playlist.findUnique({
+        const playList = await db.Playlist.findUnique({
             where: {
                 id: playlistId,
                 userId: req.user.id,
@@ -103,7 +103,7 @@ export const addProblemToPlaylist = async (req, res) => {
         }
 
         // create records for each problems in the playlist
-        const problemsInPlaylist = await db.problemInPlaylist.createMany({
+        const problemsInPlaylist = await db.ProblemInPlaylist.createMany({
             data: problemIds.map((problemId) => ({
                 playListId: playlistId,
                 problemId,
