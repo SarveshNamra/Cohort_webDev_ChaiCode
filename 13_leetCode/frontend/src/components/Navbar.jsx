@@ -1,4 +1,4 @@
-import react from "react";
+import react, { useMemo } from "react";
 import { User, Code, LogOut } from "lucide-react";
 import { useAuthStore } from "../store/useAuthStore";
 import { Link } from "react-router-dom";
@@ -9,12 +9,17 @@ const Navebar = () => {
 
     console.log("Auth User in Navbar:", authUser);
 
+    const randomAvatar = useMemo(() => {
+      const seed = Math.random().toString(36).substring(2);
+      return `https://api.dicebear.com/7.x/avataaars/svg?seed=${seed}`;
+    }, []);
+
     return(
     <nav className="sticky top-0 z-50 w-full py-5">
       <div className="flex w-full justify-between mx-auto max-w-4xl bg-black/15 shadow-lg shadow-neutral-600/5 backdrop-blur-lg border border-gray-200/10 p-4 rounded-2xl">
         {/* Logo Section */}
         <Link to="/" className="flex items-center gap-3 cursor-pointer">
-          <img src="/logo.svg" className="h-18 w-18 bg-primary/20 text-primary border-none px-1 py-1 rounded-full" />
+          <img src="/logo.svg" className="h-16 w-16 bg-primary/20 text-primary border-none px-1 py-1 rounded-full" />
           <span className="text-lg md:text-2xl font-bold tracking-tight text-white hidden md:block">
           Code Buddy 
           </span>
@@ -28,7 +33,7 @@ const Navebar = () => {
                 <img
                   src={
                     authUser?.image ||
-                    "https://avatar.iran.liara.run/public/boy"
+                    randomAvatar
                   }
                   alt="User Avatar"
                   className="object-cover"

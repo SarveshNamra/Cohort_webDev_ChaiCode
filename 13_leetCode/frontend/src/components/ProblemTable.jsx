@@ -9,11 +9,10 @@ import AddToPlaylist from "./AddToPlaylist";
 
 const ProblemTable = ({problems}) => {
     const {authUser} = useAuthStore();
-    
+
     const [search, setSearch] = useState("");
     const [difficulty, setDifficulty] = useState("ALL");
     const [selectedTag, setSelectedTag] = useState("ALL");
-    // ToDo - implement pagination
     const [currentPage, setCurrentPage] = useState(1);
     const [isCreateModalOpen, setIsCreateModelOpen] = useState(false);
     const [isAddToPlaylistModalOpen, setIsAddToPlaylistModalOpen] = useState(false);
@@ -53,7 +52,7 @@ const ProblemTable = ({problems}) => {
     }
 
     const handleAddToPlaylist = (problemId) => {
-      setSelectedProblemId(probelmId);
+      setSelectedProblemId(problemId);
       setIsAddToPlaylistModalOpen(true);
     }
 
