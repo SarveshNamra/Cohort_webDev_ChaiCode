@@ -17,8 +17,10 @@ export function useContactForm() {
           "Content-Type": "application/json",
         },
         body: JSON.stringify(formData),
-      });
+      }); 
+      
       const data = await res.json();
+
       if (!res.ok) throw new Error(data.error || "Something went wrong");
       setSuccessMessage(data.success || "Message sent");
     } catch (error) {
