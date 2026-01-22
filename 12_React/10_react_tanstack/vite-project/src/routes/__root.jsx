@@ -1,12 +1,16 @@
 import * as React from 'react'
 import { Link, Outlet, createRootRoute } from '@tanstack/react-router'
 import { TanStackRouterDevtools } from '@tanstack/react-router-devtools'
+import { useNotification } from '../context/NotificationContext'
 
 export const Route = createRootRoute({
   component: RootComponent,
 })
 
 function RootComponent() {
+  // using context
+  const {count} = useNotification();
+
   return (
     <React.Fragment>
         <div>Hello "__root"!</div>
