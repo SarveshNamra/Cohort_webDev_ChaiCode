@@ -8,6 +8,7 @@ const seeStatus = document.getElementById('bulb');
 toDoToggling.addEventListener('click', () =>{
   if(seeStatus.classList.contains('off')){
     document.body.classList.add('dark-mode');
+    toDoToggling.innerHTML = 'Turn Off';
     changStatus.innerHTML = 'Status: On';
     seeStatus.classList.remove('off');
     seeStatus.classList.add('on');
@@ -17,6 +18,6 @@ toDoToggling.addEventListener('click', () =>{
     seeStatus.classList.remove('on');
     seeStatus.classList.add('off');
     changStatus.innerHTML = 'Status: Off';
-
+    toDoToggling.innerHTML = 'Turn On';
   }
 });
